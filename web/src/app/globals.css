@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  background-color: #FFF5F7;
+  color: #2D3436;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #FFF0F5; }
+::-webkit-scrollbar-thumb { background: #FFC3D0; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #FF6B9D; }
+
+.admin-scroll::-webkit-scrollbar-track { background: #F1F5F9; }
+.admin-scroll::-webkit-scrollbar-thumb { background: #94A3B8; border-radius: 4px; }
+
+@layer components {
+  .kawaii-card {
+    @apply bg-white rounded-3xl border-2 border-pink-100 overflow-hidden transition-all duration-300;
+  }
+  .kawaii-card:hover {
+    @apply border-pink-300 -translate-y-1;
+    box-shadow: 0 8px 30px rgba(255, 107, 157, 0.15);
+  }
+  .kawaii-btn {
+    @apply bg-gradient-to-r from-primary-500 to-primary-400 text-white rounded-full px-6 py-2.5 font-medium transition-all duration-200;
+  }
+  .kawaii-btn:hover {
+    @apply from-primary-600 to-primary-500 -translate-y-0.5;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
+  }
+  .kawaii-badge {
+    @apply bg-primary-100 text-primary-700 rounded-full px-3 py-1 text-sm font-medium inline-block;
+  }
+  .kawaii-input {
+    @apply bg-white border-2 border-pink-200 rounded-2xl px-4 py-2.5 focus:outline-none focus:border-primary-400 transition-colors;
+  }
+}
+
+/* Volume slider - hide thumb by default, show on hover */
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.volume-slider:hover::-webkit-slider-thumb {
+  opacity: 1;
+}
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.volume-slider:hover::-moz-range-thumb {
+  opacity: 1;
+}
+
+/* ===== Global smooth transitions ===== */
+@layer base {
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+  button, a, [role="button"] {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 180ms;
+  }
+  button:active, a:active, [role="button"]:active {
+    transform: scale(0.96);
+  }
+  input, select, textarea {
+    transition-property: border-color, box-shadow, background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 180ms;
+  }
+}
+
+/* Page fade-in */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: pageFadeIn 0.32s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Card/item fade-in stagger */
+@keyframes itemFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.item-enter {
+  animation: itemFadeIn 0.36s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Modal/dialog fade */
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.overlay-enter { animation: overlayFade 0.2s ease-out both; }
+.modal-enter   { animation: modalPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Tab/segment switch */
+@keyframes tabFade {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.tab-enter { animation: tabFade 0.22s ease-out both; }
+
+/* Like heart burst */
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.heart-pop { animation: heartPop 0.35s ease-out; }
+
+/* Spin smoothly */
+@keyframes smoothSpin {
+  to { transform: rotate(360deg); }
+}
+.smooth-spin { animation: smoothSpin 0.6s ease-in-out; }
+
+/* Shake on error */
+@keyframes shakeX {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.shake { animation: shakeX 0.4s ease-in-out; }
+
+/* Subtle pulse */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+.soft-pulse { animation: softPulse 1.6s ease-in-out infinite; }

@@ -1,0 +1,52 @@
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+server.exe
+import.exe
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe
+
+# Go workspace
+.idea/
+.vscode/
+
+# Runtime data / uploads / build outputs
+/data/
+/uploads/
+/parsed-json/
+/bin/
+
+# Windows artifact
+nul
+
+# Logs
+*.log
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Node / web
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+web/.tsbuildinfo
+web/next-env.d.ts
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local DB
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
