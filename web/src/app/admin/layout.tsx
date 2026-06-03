@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Film, FolderOpen, BarChart3, ArrowLeft, LogOut, Shield, Hash, Sparkles, Users, Globe } from "lucide-react";
+import { LayoutDashboard, Film, FolderOpen, BarChart3, ArrowLeft, LogOut, Shield, Hash, Sparkles, Users, Globe, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import PageTransition from "@/components/PageTransition";
 
@@ -15,6 +15,7 @@ const navItems = [
   { href: "/admin/tags", label: "Tags", icon: Hash },
   { href: "/admin/countries", label: "Countries", icon: Globe },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

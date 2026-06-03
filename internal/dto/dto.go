@@ -113,6 +113,58 @@ type DashboardData struct {
 	ViewsByMonth    []MonthViews       `json:"viewsByMonth"`
 }
 
+type DashboardResponse struct {
+	KPIs            []KPIItem          `json:"kpis"`
+	ViewsTrend      []MonthViews       `json:"viewsTrend"`
+	UploadsTrend    []DayCount         `json:"uploadsTrend"`
+	CategoryDist    []CategoryCount    `json:"categoryDist"`
+	TopVideos       []TopVideoItem     `json:"topVideos"`
+	ViewsByCountry  []CountryViews     `json:"viewsByCountry"`
+	RecentVideos    []interface{}      `json:"recentVideos"`
+	UserGrowth      []DayCount         `json:"userGrowth"`
+	TopTags         []TagCount         `json:"topTags"`
+	EngagementRate  float64            `json:"engagementRate"`
+	AvgDuration     int                `json:"avgDuration"`
+}
+
+type KPIItem struct {
+	Label    string  `json:"label"`
+	Value    int64   `json:"value"`
+	Change   float64 `json:"change"`
+	Icon     string  `json:"icon"`
+	Color    string  `json:"color"`
+}
+
+type TopVideoItem struct {
+	ID              uint   `json:"id"`
+	Title           string `json:"title"`
+	PosterImage     string `json:"posterImage"`
+	Views           int    `json:"views"`
+	LikesCount      int    `json:"likesCount"`
+	Upvotes         int    `json:"upvotes"`
+	Downvotes       int    `json:"downvotes"`
+	DurationSeconds int    `json:"durationSeconds"`
+	UploadedByName  string `json:"uploadedByName"`
+	Country         string `json:"country"`
+	CreatedAt       string `json:"createdAt"`
+}
+
+type CountryViews struct {
+	Country string `json:"country"`
+	Views   int64  `json:"views"`
+	Count   int    `json:"count"`
+}
+
+type TagCount struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type DayCount struct {
+	Date  string `json:"date"`
+	Count int    `json:"count"`
+}
+
 type CategoryCount struct {
 	Name  string `json:"name"`
 	Slug  string `json:"slug"`
@@ -122,4 +174,25 @@ type CategoryCount struct {
 type MonthViews struct {
 	Month string `json:"month"`
 	Views int64  `json:"views"`
+}
+
+type ChartsResponse struct {
+	ViewsByMonth    []MonthViews     `json:"viewsByMonth"`
+	Categories      []CategoryCount  `json:"categories"`
+	DailyUploads    []DayCount       `json:"dailyUploads"`
+	ViewsByCountry  []CountryViews   `json:"viewsByCountry"`
+	TopTags         []TagCount       `json:"topTags"`
+	UserGrowth      []DayCount       `json:"userGrowth"`
+	ViewsByHour     []HourViews      `json:"viewsByHour"`
+	DurationDist    []DurationBucket `json:"durationDist"`
+}
+
+type HourViews struct {
+	Hour  string `json:"hour"`
+	Views int64  `json:"views"`
+}
+
+type DurationBucket struct {
+	Range string `json:"range"`
+	Count int    `json:"count"`
 }

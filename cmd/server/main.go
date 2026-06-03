@@ -145,6 +145,9 @@ func main() {
 			admin.GET("/users/:id", adminUserHandler.GetUser)
 			admin.PUT("/users/:id", adminUserHandler.UpdateUser)
 			admin.DELETE("/users/:id", adminUserHandler.DeleteUser)
+
+			// admin settings
+			admin.PUT("/password", authHandler.ChangeAdminPassword)
 		}
 	}
 

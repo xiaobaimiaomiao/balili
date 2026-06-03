@@ -153,18 +153,48 @@ export interface PaginatedResponse<T> {
 }
 
 export interface DashboardData {
-  totalVideos: number;
-  totalViews: number;
-  totalCategories: number;
-  totalTags: number;
-  avgRating: number;
+  kpis: KPIItem[];
+  viewsTrend: { month: string; views: number }[];
+  uploadsTrend: { date: string; count: number }[];
+  categoryDist: { name: string; slug: string; count: number }[];
+  topVideos: TopVideoItem[];
+  viewsByCountry: { country: string; views: number; count: number }[];
   recentVideos: Video[];
-  topCategories: { name: string; slug: string; count: number }[];
-  viewsByMonth: { month: string; views: number }[];
+  userGrowth: { date: string; count: number }[];
+  topTags: { name: string; count: number }[];
+  engagementRate: number;
+  avgDuration: number;
+}
+
+export interface KPIItem {
+  label: string;
+  value: number;
+  change: number;
+  icon: string;
+  color: string;
+}
+
+export interface TopVideoItem {
+  id: number;
+  title: string;
+  posterImage: string;
+  views: number;
+  likesCount: number;
+  upvotes: number;
+  downvotes: number;
+  durationSeconds: number;
+  uploadedByName: string;
+  country: string;
+  createdAt: string;
 }
 
 export interface ChartData {
   viewsByMonth: { month: string; views: number }[];
   categories: { name: string; slug: string; count: number }[];
   dailyUploads: { date: string; count: number }[];
+  viewsByCountry: { country: string; views: number; count: number }[];
+  topTags: { name: string; count: number }[];
+  userGrowth: { date: string; count: number }[];
+  viewsByHour: { hour: string; views: number }[];
+  durationDist: { range: string; count: number }[];
 }

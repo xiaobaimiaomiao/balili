@@ -490,6 +490,45 @@ func (h *AuthHandler) UploadVideo(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.APIResponse{Success: true, Data: video})
 }
 
+// ---- Admin Password Change ----
+
+func (h *AuthHandler) ChangeAdminPassword(c *gin.Context) {
+	adminID, _ := c.Get("adminID")
+
+	var body struct {
+		OldPassword string `json:"oldPassword" binding:"required"`
+		NewPassword string `json:"newPassword" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "INVALID_PARAMS", Message: err.Error()}})
+		return
+	}
+
+	if len(body.NewPassword) < 6 {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "WEAK_PASSWORD", Message: "New password must be at least 6 characters"}})
+		return
+	}
+
+	var admin model.Admin
+	if err := h.db.First(&admin, adminID).Error; err != nil {
+		c.JSON(http.StatusNotFound, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "NOT_FOUND", Message: "Admin not found"}})
+		return
+	}
+
+	if admin.Password != hashPassword(body.OldPassword) {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "WRONG_PASSWORD", Message: "Current password is incorrect"}})
+		return
+	}
+
+	newHash := hashPassword(body.NewPassword)
+	if err := h.db.Model(&admin).Update("password", newHash).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "UPDATE_ERROR", Message: "Failed to update password"}})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.APIResponse{Success: true, Data: gin.H{"message": "Password changed successfully"}})
+}
+
 // EnsureAdmin creates a default admin if none exists, or fixes empty passwords
 func EnsureAdmin(db *gorm.DB) {
 	var admin model.Admin

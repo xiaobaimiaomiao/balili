@@ -119,7 +119,7 @@ export const api = {
       }).then((r) => r.json()),
     getDashboard: () => fetchAdminApi("/admin/dashboard"),
     getCharts: () => fetchAdminApi("/admin/stats/charts"),
-    getViewsByGranularity: (granularity: string) => fetchAdminApi(`/admin/stats/views?granularity=${granularity}`),
+    getViewsByGranularity: (granularity: string, range: string) => fetchAdminApi(`/admin/stats/views?granularity=${granularity}&range=${range}`),
     getVideos: (params?: Record<string, string | number>) => {
       const qs = params ? "?" + new URLSearchParams(
         Object.entries(params).reduce((acc, [k, v]) => {
@@ -158,5 +158,7 @@ export const api = {
     getUser: (id: number) => fetchAdminApi(`/admin/users/${id}`),
     updateUser: (id: number, data: unknown) => fetchAdminApi(`/admin/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     deleteUser: (id: number) => fetchAdminApi(`/admin/users/${id}`, { method: "DELETE" }),
+    changePassword: (oldPassword: string, newPassword: string) =>
+      fetchAdminApi("/admin/password", { method: "PUT", body: JSON.stringify({ oldPassword, newPassword }) }),
   },
 };
