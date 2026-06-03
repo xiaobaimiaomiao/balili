@@ -60,8 +60,19 @@ function ModernPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("balili_volume");
+      return saved !== null ? parseFloat(saved) : 1;
+    }
+    return 1;
+  });
+  const [muted, setMuted] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("balili_muted") === "true";
+    }
+    return false;
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [qualityHovered, setQualityHovered] = useState(false);
@@ -108,6 +119,11 @@ function ModernPlayer({
 
       const restore = () => {
         try { video.currentTime = savedTime; } catch { /* ignore */ }
+        // Apply saved volume and muted state
+        const savedVol = parseFloat(localStorage.getItem("balili_volume") || "1");
+        const savedMuted = localStorage.getItem("balili_muted") === "true";
+        video.volume = savedVol;
+        video.muted = savedMuted;
         if (!wasPaused) video.play().catch(() => {});
         setLoading(false);
       };
@@ -156,6 +172,7 @@ function ModernPlayer({
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
+    localStorage.setItem("balili_muted", String(v.muted));
   }, []);
 
   const selectQuality = useCallback(
@@ -185,6 +202,8 @@ function ModernPlayer({
     const val = parseFloat(e.target.value);
     v.volume = val; v.muted = val === 0;
     setVolume(val); setMuted(val === 0);
+    localStorage.setItem("balili_volume", String(val));
+    localStorage.setItem("balili_muted", String(val === 0));
   }, []);
 
   const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

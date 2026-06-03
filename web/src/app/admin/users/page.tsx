@@ -27,6 +27,7 @@ import {
   ThumbsUp,
   ThumbsDown,
 } from "lucide-react";
+import Portal from "@/components/Portal";
 
 function formatNum(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -301,10 +302,11 @@ export default function AdminUsersPage() {
 
       {/* Detail Modal */}
       {(detail || detailLoading) && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-10 overlay-enter"
-          onClick={() => setDetail(null)}
-        >
+        <Portal>
+          <div
+            className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto py-10 overlay-enter"
+            onClick={() => setDetail(null)}
+          >
           <div className="absolute inset-0 bg-gradient-to-br from-pink-300/30 via-fuchsia-200/20 to-rose-300/30 backdrop-blur-sm" />
           <div
             className="relative bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-pink-200 w-full max-w-3xl mx-4 my-auto shadow-[0_20px_60px_rgba(255,107,157,0.25)] modal-enter max-h-[90vh] flex flex-col"
@@ -434,16 +436,18 @@ export default function AdminUsersPage() {
                 </div>
               )}
             </div>
+            </div>
           </div>
-        </div>
+        </Portal>
       )}
 
       {/* Edit Modal */}
       {editUser && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 overlay-enter"
-          onClick={() => setEditUser(null)}
-        >
+        <Portal>
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto p-4 overlay-enter"
+            onClick={() => setEditUser(null)}
+          >
           <div className="absolute inset-0 bg-gradient-to-br from-pink-300/30 via-fuchsia-200/20 to-rose-300/30 backdrop-blur-sm" />
           <div
             className="relative bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-pink-200 w-full max-w-md mx-4 my-auto shadow-[0_20px_60px_rgba(255,107,157,0.25)] modal-enter max-h-[90vh] flex flex-col"
@@ -510,7 +514,8 @@ export default function AdminUsersPage() {
               </button>
             </div>
           </div>
-        </div>
+          </div>
+        </Portal>
       )}
     </div>
   );

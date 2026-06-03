@@ -134,3 +134,34 @@ func toInterfaceSlice(videos []model.Video) []interface{} {
 	}
 	return result
 }
+
+// ViewsByGranularity returns view counts grouped by a user-chosen granularity.
+func (h *StatsHandler) ViewsByGranularity(c *gin.Context) {
+	g := c.DefaultQuery("granularity", "month") // minute, hour, day, month, year
+
+	var format string
+	switch g {
+	case "minute":
+		format = "%Y-%m-%d %H:%M"
+	case "hour":
+		format = "%Y-%m-%d %H:00"
+	case "day":
+		format = "%Y-%m-%d"
+	case "year":
+		format = "%Y"
+	default: // month
+		format = "%Y-%m"
+	}
+
+	var results []dto.MonthViews
+	h.db.Model(&model.Video{}).
+		Select("strftime('"+format+"', created_at) as month, SUM(views) as views").
+		Group("month").
+		Order("month").
+		Scan(&results)
+
+	c.JSON(http.StatusOK, dto.APIResponse{
+		Success: true,
+		Data:    results,
+	})
+}

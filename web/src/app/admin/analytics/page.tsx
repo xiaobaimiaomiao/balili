@@ -49,7 +49,7 @@ export default function AnalyticsPage() {
             <TrendingUp className="w-4 h-4 text-indigo-500" /> Views Trend (Monthly)
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data.viewsByMonth}>
+            <AreaChart data={data.viewsByMonth || []}>
               <defs>
                 <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
@@ -72,8 +72,8 @@ export default function AnalyticsPage() {
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie data={data.categories} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={50} label={(entry: any) => `${(entry.name || "").split(" / ")[0].substring(0, 12)} (${entry.count})`} labelLine={false}>
-                {data.categories.map((_, i) => (
+              <Pie data={data.categories || []} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={100} innerRadius={50} label={(entry: any) => `${(entry.name || "").split(" / ")[0].substring(0, 12)} (${entry.count})`} labelLine={false}>
+                {(data.categories || []).map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
             <Calendar className="w-4 h-4 text-emerald-500" /> Daily Uploads (Last 30 Days)
           </h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data.dailyUploads}>
+            <BarChart data={data.dailyUploads || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
               <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#94A3B8" />
               <YAxis tick={{ fontSize: 11 }} stroke="#94A3B8" />

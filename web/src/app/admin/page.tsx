@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { DashboardData } from "@/types";
 import { api } from "@/lib/api";
-import { Film, Eye, FolderOpen, Tag, TrendingUp, Sparkles } from "lucide-react";
+import { Film, Eye, FolderOpen, Tag, TrendingUp, Sparkles, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import Link from "next/link";
 
@@ -18,6 +18,8 @@ function formatNum(n: number): string {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [granularity, setGranularity] = useState("month");
+  const [viewsData, setViewsData] = useState<{ month: string; views: number }[]>([]);
 
   useEffect(() => {
     api.admin.getDashboard()
@@ -25,6 +27,14 @@ export default function DashboardPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const fetchViews = useCallback(() => {
+    api.admin.getViewsByGranularity(granularity)
+      .then((res: any) => setViewsData(res.data || []))
+      .catch(console.error);
+  }, [granularity]);
+
+  useEffect(() => { fetchViews(); }, [fetchViews]);
 
   if (loading) {
     return (
@@ -87,15 +97,33 @@ export default function DashboardPage() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Views by Month */}
+        {/* Views by Time */}
         <div className="bg-white/80 backdrop-blur rounded-2xl border-2 border-pink-100 p-5 transition-all duration-200 hover:border-pink-200 hover:shadow-md">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-indigo-500" /> Views by Month
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-indigo-500" /> Views by Time
+            </h3>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-gray-400" />
+              {["minute", "hour", "day", "month", "year"].map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGranularity(g)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                    granularity === g
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-500 hover:bg-pink-50 hover:text-pink-600"
+                  }`}
+                >
+                  {{ minute: "分钟", hour: "小时", day: "天", month: "月", year: "年" }[g]}
+                </button>
+              ))}
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={data.viewsByMonth.slice(-12)}>
+            <BarChart data={viewsData.slice(-24)}>
               <CartesianGrid strokeDasharray="3 3" stroke="#FCE7F3" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke="#94A3B8" />
+              <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="#94A3B8" angle={-30} textAnchor="end" height={50} />
               <YAxis tick={{ fontSize: 11 }} stroke="#94A3B8" tickFormatter={(v) => formatNum(v)} />
               <Tooltip formatter={(v: any) => [formatNum(Number(v)), "Views"]} />
               <Bar dataKey="views" fill="#EC4899" radius={[4, 4, 0, 0]} />
@@ -108,8 +136,8 @@ export default function DashboardPage() {
           <h3 className="text-sm font-semibold text-gray-700 mb-4">Category Distribution</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={data.topCategories} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={(entry: any) => `${(entry.name || "").split(" / ")[0].substring(0, 15)} (${entry.count})`} labelLine={false}>
-                {data.topCategories.map((_, i) => (
+              <Pie data={data.topCategories || []} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={(entry: any) => `${(entry.name || "").split(" / ")[0].substring(0, 15)} (${entry.count})`} labelLine={false}>
+                {(data.topCategories || []).map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>

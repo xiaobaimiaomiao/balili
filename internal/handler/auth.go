@@ -396,6 +396,20 @@ func (h *AuthHandler) UploadVideo(c *gin.Context) {
 					}
 				}
 			}
+
+			// Auto-extract duration
+			if dur, derr := ffmpeg.ProbeDurationSeconds(ffmpegBin, filePath); derr == nil && dur > 0 {
+				video.DurationSeconds = int(dur)
+			}
+		}
+
+		// Auto-set release date and year if not provided
+		now := time.Now()
+		if video.ReleaseDate == nil {
+			video.ReleaseDate = &now
+		}
+		if video.Year == 0 {
+			video.Year = now.Year()
 		}
 	}
 

@@ -119,6 +119,7 @@ export const api = {
       }).then((r) => r.json()),
     getDashboard: () => fetchAdminApi("/admin/dashboard"),
     getCharts: () => fetchAdminApi("/admin/stats/charts"),
+    getViewsByGranularity: (granularity: string) => fetchAdminApi(`/admin/stats/views?granularity=${granularity}`),
     getVideos: (params?: Record<string, string | number>) => {
       const qs = params ? "?" + new URLSearchParams(
         Object.entries(params).reduce((acc, [k, v]) => {

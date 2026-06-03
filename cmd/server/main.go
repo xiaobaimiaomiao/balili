@@ -108,6 +108,7 @@ func main() {
 		{
 			admin.GET("/dashboard", statsHandler.Dashboard)
 			admin.GET("/stats/charts", statsHandler.Charts)
+			admin.GET("/stats/views", statsHandler.ViewsByGranularity)
 
 			// video management
 			admin.GET("/videos", adminHandler.ListVideos)

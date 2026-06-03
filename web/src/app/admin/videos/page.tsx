@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Video, Category, Tag, Country } from "@/types";
 import { api } from "@/lib/api";
 import { Search, ChevronLeft, ChevronRight, Trash2, Edit3, X, Save, Plus, Film, Sparkles } from "lucide-react";
+import Portal from "@/components/Portal";
 
 function formatNum(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -272,9 +273,10 @@ export default function AdminVideosPage() {
 
       {/* Full Edit Modal */}
       {editVideo && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-10 overlay-enter" onClick={() => setEditVideo(null)}>
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-300/30 via-fuchsia-200/20 to-rose-300/30 backdrop-blur-sm" />
-          <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-pink-200 w-full max-w-2xl mx-4 shadow-[0_20px_60px_rgba(255,107,157,0.25)] modal-enter" onClick={(e) => e.stopPropagation()}>
+        <Portal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto overlay-enter" onClick={() => setEditVideo(null)}>
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-300/30 via-fuchsia-200/20 to-rose-300/30 backdrop-blur-sm" />
+            <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-pink-200 w-full max-w-2xl mx-4 my-8 shadow-[0_20px_60px_rgba(255,107,157,0.25)] modal-enter flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b-2 border-pink-100">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-md">
@@ -286,7 +288,7 @@ export default function AdminVideosPage() {
               </div>
               <button onClick={() => setEditVideo(null)} className="p-1.5 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-full transition-colors"><X className="w-5 h-5" /></button>
             </div>
-            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+            <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
               {isNew && (
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block font-medium">Video ID * (unique identifier)</label>
@@ -409,8 +411,9 @@ export default function AdminVideosPage() {
                 {saving ? "Saving..." : isNew ? "Create Video" : "Save Changes"}
               </button>
             </div>
+            </div>
           </div>
-        </div>
+        </Portal>
       )}
     </div>
   );
