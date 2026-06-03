@@ -42,8 +42,6 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-4 text-sm font-medium text-gray-500">
           <Link href="/" prefetch={true} className="hover:text-primary-500 transition-colors">Home</Link>
-          <Link href="/category" prefetch={true} className="hover:text-primary-500 transition-colors">Categories</Link>
-          <Link href="/tag" prefetch={true} className="hover:text-primary-500 transition-colors">Tags</Link>
           <Link href="/filter" prefetch={true} className="hover:text-primary-500 transition-colors flex items-center gap-1">
             <SlidersHorizontal className="w-3.5 h-3.5" /> 筛选
           </Link>

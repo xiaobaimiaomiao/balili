@@ -140,7 +140,7 @@ export default function AdminVideosPage() {
         payload.videoId = form.videoId;
         await api.admin.updateVideo(editVideo.id, payload);
         // Update relations separately
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"}/admin/videos/${editVideo.id}/relations`, {
+        await fetch(`/api/v1/admin/videos/${editVideo.id}/relations`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("admin_token")}` },
           body: JSON.stringify({ categoryIds: form.categoryIds, tagIds: form.tagIds }),

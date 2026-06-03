@@ -20,12 +20,15 @@ function CategoryContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Decode slug to handle URL-encoded Chinese characters
+  const categorySlug = typeof params.slug === "string" ? decodeURIComponent(params.slug) : "";
+
   useEffect(() => {
-    if (!params.slug) return;
+    if (!categorySlug) return;
     setLoading(true);
 
     // First fetch category by slug to get the ID, then fetch videos by category ID
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"}/categories/${params.slug}`)
+    fetch(`/api/v1/categories/${categorySlug}`)
       .then((r) => r.json())
       .then((catRes: any) => {
         const cat = catRes?.data;
@@ -44,11 +47,11 @@ function CategoryContent() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [params.slug, page]);
+  }, [categorySlug, page]);
 
   const handlePageChange = (p: number) => {
     setPage(p);
-    router.push(`/category/${params.slug}?page=${p}`);
+    router.push(`/category/${encodeURIComponent(categorySlug)}?page=${p}`);
   };
 
   return (
@@ -62,7 +65,7 @@ function CategoryContent() {
           <FolderOpen className="w-6 h-6 text-primary-500" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-800">{category?.name || params.slug}</h1>
+          <h1 className="text-xl font-bold text-gray-800">{category?.name || categorySlug}</h1>
           {category && <p className="text-sm text-gray-400">{category.videoCount.toLocaleString()} videos</p>}
         </div>
       </div>

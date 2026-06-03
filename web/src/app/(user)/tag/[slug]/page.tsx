@@ -19,21 +19,24 @@ function TagContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Decode slug to handle URL-encoded Chinese characters
+  const tagSlug = typeof params.slug === "string" ? decodeURIComponent(params.slug) : "";
+
   useEffect(() => {
-    if (!params.slug) return;
+    if (!tagSlug) return;
     setLoading(true);
-    api.getVideos({ page, limit: 20, tag: params.slug as string, sort: "created_at", order: "desc" })
+    api.getVideos({ page, limit: 20, tag: tagSlug, sort: "created_at", order: "desc" })
       .then((res: any) => {
         setVideos(res.data || []);
         setTotalPages(res.meta?.totalPages || 1);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [params.slug, page]);
+  }, [tagSlug, page]);
 
   const handlePageChange = (p: number) => {
     setPage(p);
-    router.push(`/tag/${params.slug}?page=${p}`);
+    router.push(`/tag/${encodeURIComponent(tagSlug)}?page=${p}`);
   };
 
   return (
@@ -46,7 +49,7 @@ function TagContent() {
         <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-mint rounded-2xl flex items-center justify-center">
           <Hash className="w-6 h-6 text-primary-500" />
         </div>
-        <h1 className="text-xl font-bold text-gray-800">#{params.slug}</h1>
+        <h1 className="text-xl font-bold text-gray-800">#{tagSlug}</h1>
       </div>
 
       {loading ? <Skeleton /> : (
