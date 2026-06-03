@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Video, Category, Tag } from "@/types";
+import { Video, Category, Tag, Country } from "@/types";
 import { api } from "@/lib/api";
 import { Search, ChevronLeft, ChevronRight, Trash2, Edit3, X, Save, Plus, Film, Sparkles } from "lucide-react";
-import CuteModal from "@/components/CuteModal";
 
 function formatNum(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -21,6 +20,8 @@ interface VideoFormData {
   durationSeconds: number;
   views: number;
   uploadedByName: string;
+  year: number;
+  country: string;
   categoryIds: number[];
   tagIds: number[];
   qualities: { label: string; url: string }[];
@@ -30,7 +31,8 @@ interface VideoFormData {
 const emptyForm: VideoFormData = {
   videoId: "", title: "", description: "", posterImage: "",
   releaseDate: "", durationSeconds: 0, views: 0,
-  uploadedByName: "admin", categoryIds: [], tagIds: [],
+  uploadedByName: "admin", year: 0, country: "Japan",
+  categoryIds: [], tagIds: [],
   qualities: [{ label: "720p", url: "" }], screenshots: [],
 };
 
@@ -45,6 +47,7 @@ export default function AdminVideosPage() {
   const [form, setForm] = useState<VideoFormData>(emptyForm);
   const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -62,10 +65,11 @@ export default function AdminVideosPage() {
 
   useEffect(() => { loadVideos(); }, [loadVideos]);
 
-  // Load categories and tags for the form
+  // Load categories, tags and countries for the form
   useEffect(() => {
     api.admin.getCategories().then((r: any) => setCategories(r.data || [])).catch(() => {});
     api.admin.getTags(1000).then((r: any) => setTags(r.data || [])).catch(() => {});
+    api.admin.getCountries().then((r: any) => setCountries(r.data || [])).catch(() => {});
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -91,6 +95,8 @@ export default function AdminVideosPage() {
       durationSeconds: v.durationSeconds,
       views: v.views,
       uploadedByName: v.uploadedByName || "admin",
+      year: v.year || 0,
+      country: v.country || "Japan",
       categoryIds: v.categories?.map((c) => c.id) || [],
       tagIds: v.tags?.map((t) => t.id) || [],
       qualities: v.qualities?.map((q) => ({ label: q.label, url: q.url })) || [],
@@ -117,6 +123,8 @@ export default function AdminVideosPage() {
         views: form.views,
         submittedAgo: "",
         uploadedByName: form.uploadedByName || "admin",
+        year: form.year,
+        country: form.country,
         categoryIds: form.categoryIds,
         tagIds: form.tagIds,
       };
@@ -205,6 +213,8 @@ export default function AdminVideosPage() {
                 <th className="px-5 py-3 font-semibold">Thumbnail</th>
                 <th className="px-5 py-3 font-semibold">Title</th>
                 <th className="px-5 py-3 font-semibold">Uploader</th>
+                <th className="px-5 py-3 font-semibold">Country</th>
+                <th className="px-5 py-3 font-semibold w-16">Year</th>
                 <th className="px-5 py-3 font-semibold w-20">Views</th>
                 <th className="px-5 py-3 font-semibold w-20">Rating</th>
                 <th className="px-5 py-3 font-semibold w-24">Date</th>
@@ -213,13 +223,13 @@ export default function AdminVideosPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="px-5 py-10 text-center text-pink-400">
+                <tr><td colSpan={10} className="px-5 py-10 text-center text-pink-400">
                   <span className="inline-flex items-center gap-2">
                     <Sparkles className="w-4 h-4 animate-spin" /> Loading...
                   </span>
                 </td></tr>
               ) : videos.length === 0 ? (
-                <tr><td colSpan={8} className="px-5 py-10 text-center text-gray-400">No videos found</td></tr>
+                <tr><td colSpan={10} className="px-5 py-10 text-center text-gray-400">No videos found</td></tr>
               ) : videos.map((v, i) => (
                 <tr key={v.id} className="border-t border-pink-50 hover:bg-gradient-to-r hover:from-pink-50/50 hover:to-rose-50/50 transition-colors duration-200 item-enter" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
                   <td className="px-5 py-3 text-gray-500 text-xs">{v.videoId}</td>
@@ -233,6 +243,8 @@ export default function AdminVideosPage() {
                     <p className="text-xs text-gray-400 mt-0.5">{v.categories?.map((c) => c.name.split(" / ")[0]).join(", ")}</p>
                   </td>
                   <td className="px-5 py-3 text-gray-500 text-xs">{v.uploadedByName || "admin"}</td>
+                  <td className="px-5 py-3 text-gray-500 text-xs">{v.country || "-"}</td>
+                  <td className="px-5 py-3 text-gray-500 text-xs">{v.year || "-"}</td>
                   <td className="px-5 py-3 text-gray-600">{formatNum(v.views)}</td>
                   <td className="px-5 py-3 text-gray-600">{(v.upvotes > 0 || v.downvotes > 0) ? `${Math.round((v.upvotes / (v.upvotes + v.downvotes)) * 100)}%` : "-"}</td>
                   <td className="px-5 py-3 text-gray-500 text-xs">{v.releaseDate ? new Date(v.releaseDate).toLocaleDateString() : "-"}</td>
@@ -319,6 +331,24 @@ export default function AdminVideosPage() {
                   <label className="text-xs text-gray-500 mb-1 block font-medium">Views</label>
                   <input type="number" value={form.views} onChange={(e) => update("views", parseInt(e.target.value) || 0)}
                     className="w-full bg-pink-50/50 border-2 border-pink-200 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-pink-400 focus:bg-white transition-all" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block font-medium">Year</label>
+                  <input type="number" value={form.year} onChange={(e) => update("year", parseInt(e.target.value) || 0)}
+                    placeholder="e.g. 2024"
+                    className="w-full bg-pink-50/50 border-2 border-pink-200 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-pink-400 focus:bg-white transition-all" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 mb-1 block font-medium">Country</label>
+                  <select value={form.country} onChange={(e) => update("country", e.target.value)}
+                    className="w-full bg-pink-50/50 border-2 border-pink-200 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-pink-400 focus:bg-white transition-all">
+                    {countries.map((c) => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

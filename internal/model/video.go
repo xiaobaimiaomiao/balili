@@ -17,6 +17,8 @@ type Video struct {
 	SubmittedAgo    string     `gorm:"size:100" json:"submittedAgo"`
 	UploadedByID    *uint      `gorm:"index" json:"uploadedById"`
 	UploadedByName  string     `gorm:"size:100" json:"uploadedByName"`
+	Year            int        `gorm:"default:0;index" json:"year"`
+	Country         string     `gorm:"size:100;index" json:"country"`
 	CreatedAt       time.Time  `json:"createdAt"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
 

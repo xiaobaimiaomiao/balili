@@ -13,6 +13,8 @@ export interface Video {
   submittedAgo: string;
   uploadedById: number | null;
   uploadedByName: string;
+  year: number;
+  country: string;
   createdAt: string;
   updatedAt: string;
   categories: Category[];
@@ -51,6 +53,13 @@ export interface Tag {
   id: number;
   name: string;
   slug: string;
+  videoCount: number;
+  createdAt: string;
+}
+
+export interface Country {
+  id: number;
+  name: string;
   videoCount: number;
   createdAt: string;
 }

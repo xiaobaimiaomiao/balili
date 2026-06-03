@@ -33,17 +33,20 @@ func main() {
 	catRepo := repository.NewCategoryRepository(db)
 	tagRepo := repository.NewTagRepository(db)
 	userRepo := repository.NewUserRepository(db)
+	countryRepo := repository.NewCountryRepository(db)
 
 	// services
 	videoSvc := service.NewVideoService(videoRepo, catRepo, tagRepo)
 	catSvc := service.NewCategoryService(catRepo)
+	countrySvc := service.NewCountryService(countryRepo)
 
 	// handlers
 	videoHandler := handler.NewVideoHandler(videoSvc, db)
 	catHandler := handler.NewCategoryHandler(catSvc)
 	tagHandler := handler.NewTagHandler(tagRepo)
+	countryHandler := handler.NewCountryHandler(countrySvc)
 	statsHandler := handler.NewStatsHandler(db, videoSvc, catSvc)
-	adminHandler := handler.NewAdminHandler(videoSvc, catSvc, tagRepo, db)
+	adminHandler := handler.NewAdminHandler(videoSvc, catSvc, tagRepo, countrySvc, db)
 	adminUserHandler := handler.NewAdminUserHandler(userRepo, db)
 	interactionHandler := handler.NewInteractionHandler(db)
 	authHandler := handler.NewAuthHandler(db)
@@ -71,6 +74,9 @@ func main() {
 
 		// tags
 		v1.GET("/tags", tagHandler.List)
+
+		// countries
+		v1.GET("/countries", countryHandler.List)
 
 		// stats
 		v1.GET("/stats/overview", statsHandler.Overview)
@@ -123,6 +129,12 @@ func main() {
 			admin.POST("/tags", adminHandler.CreateTag)
 			admin.PUT("/tags/:id", adminHandler.UpdateTag)
 			admin.DELETE("/tags/:id", adminHandler.DeleteTag)
+
+			// country management
+			admin.GET("/countries", adminHandler.ListCountries)
+			admin.POST("/countries", adminHandler.CreateCountry)
+			admin.PUT("/countries/:id", adminHandler.UpdateCountry)
+			admin.DELETE("/countries/:id", adminHandler.DeleteCountry)
 
 			// comment management
 			admin.DELETE("/comments/:commentId", interactionHandler.DeleteComment)

@@ -9,7 +9,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Eye, Clock, Star, Calendar, Tag, Image as ImageIcon,
   Play, Pause, Maximize, Minimize, Volume2, VolumeX,
-  Heart, Send, MessageCircle, Settings, ChevronDown,
+  Heart, Send, MessageCircle, Settings, Check,
   User, MonitorPlay, ThumbsUp, ThumbsDown, Sparkles,
 } from "lucide-react";
 import Hls from "hls.js";
@@ -52,6 +52,7 @@ function ModernPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const qualityCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [activeQuality, setActiveQuality] = useState<Quality | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -63,7 +64,7 @@ function ModernPlayer({
   const [muted, setMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [showQuality, setShowQuality] = useState(false);
+  const [qualityHovered, setQualityHovered] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const playable = qualities.filter((q) => q.url);
@@ -79,6 +80,7 @@ function ModernPlayer({
   useEffect(() => {
     return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (qualityCloseTimer.current) clearTimeout(qualityCloseTimer.current);
       if (hlsRef.current) hlsRef.current.destroy();
     };
   }, []);
@@ -93,6 +95,8 @@ function ModernPlayer({
     (quality: Quality) => {
       const video = videoRef.current;
       if (!video) return;
+      const savedTime = hasStarted ? video.currentTime : 0;
+      const wasPaused = hasStarted ? video.paused : false;
       setActiveQuality(quality);
       setLoading(true);
       if (hlsRef.current) {
@@ -102,30 +106,29 @@ function ModernPlayer({
       const url = quality.url;
       if (!url) return;
 
+      const restore = () => {
+        try { video.currentTime = savedTime; } catch { /* ignore */ }
+        if (!wasPaused) video.play().catch(() => {});
+        setLoading(false);
+      };
+
       if (url.includes(".m3u8")) {
         if (Hls.isSupported()) {
           const hls = new Hls({ enableWorker: true, lowLatencyMode: false });
           hlsRef.current = hls;
           hls.loadSource(url);
           hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(() => {});
-            setLoading(false);
-          });
+          hls.on(Hls.Events.MANIFEST_PARSED, restore);
           hls.on(Hls.Events.ERROR, () => setLoading(false));
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
           video.src = url;
-          video.addEventListener("loadedmetadata", () => {
-            video.play().catch(() => {});
-            setLoading(false);
-          });
+          video.addEventListener("loadedmetadata", restore, { once: true });
         }
       } else {
         video.src = url;
-        video.play().catch(() => {});
-        setLoading(false);
+        video.addEventListener("loadeddata", restore, { once: true });
       }
-      setIsPlaying(true);
+      setIsPlaying(!wasPaused);
       if (!hasStarted) {
         setHasStarted(true);
         onFirstPlay();
@@ -153,6 +156,27 @@ function ModernPlayer({
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
+  }, []);
+
+  const selectQuality = useCallback(
+    (q: Quality) => {
+      if (!activeQuality || activeQuality.id !== q.id) loadStream(q);
+    },
+    [activeQuality, loadStream]
+  );
+
+  const handleQualityEnter = useCallback(() => {
+    if (qualityCloseTimer.current) {
+      clearTimeout(qualityCloseTimer.current);
+      qualityCloseTimer.current = null;
+    }
+    setQualityHovered(true);
+  }, []);
+
+  const handleQualityLeave = useCallback(() => {
+    qualityCloseTimer.current = setTimeout(() => {
+      setQualityHovered(false);
+    }, 200);
   }, []);
 
   const handleVolume = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,6 +314,46 @@ function ModernPlayer({
                   <input type="range" min={0} max={1} step={0.05} value={muted ? 0 : volume} onChange={handleVolume}
                     className="volume-slider w-0 group-hover/vol:w-20 transition-all duration-200 h-1 cursor-pointer" />
                 </div>
+                {playable.length > 1 && (
+                  <div
+                    className="relative"
+                    onMouseEnter={handleQualityEnter}
+                    onMouseLeave={handleQualityLeave}
+                  >
+                    <button
+                      className="flex items-center gap-1 px-2 py-1.5 text-white hover:text-primary-300 transition-colors"
+                      aria-label="Quality"
+                      title="Quality"
+                    >
+                      <Settings className="w-5 h-5" />
+                      <span className="text-xs font-medium hidden sm:inline">
+                        {activeQuality?.label ?? playable[playable.length - 1].label}
+                      </span>
+                    </button>
+                    <div
+                      className={`quality-menu absolute bottom-full right-0 mb-2 w-44 bg-black/90 backdrop-blur-md rounded-xl border border-white/10 shadow-2xl overflow-hidden transition-opacity duration-200 ${qualityHovered ? "opacity-100 visible pointer-events-auto" : "opacity-0 invisible pointer-events-none"}`}
+                    >
+                      <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-white/50 font-semibold border-b border-white/10">
+                        Quality
+                      </div>
+                      {playable.map((q) => {
+                        const active = activeQuality?.id === q.id;
+                        return (
+                          <button
+                            key={q.id}
+                            onClick={() => selectQuality(q)}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-sm transition-colors ${
+                              active ? "bg-primary-500/30 text-white" : "text-white/80 hover:bg-white/10"
+                            }`}
+                          >
+                            <span className="font-medium">{q.label}</span>
+                            {active && <Check className="w-4 h-4 text-primary-300" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <button onClick={() => onToggleTheater()} className="p-1.5 text-white hover:text-primary-300 transition-colors" title="Theater Mode">
                   <MonitorPlay className={`w-5 h-5 ${theaterMode ? "text-primary-400" : ""}`} />
                 </button>
@@ -428,6 +492,7 @@ export default function VideoDetailPage() {
     downvotes: 0,
     userVote: null as boolean | null,
     rating: 0,
+    totalVotes: 0,
   });
   const viewIncremented = useRef(false);
 
@@ -450,6 +515,7 @@ export default function VideoDetailPage() {
           rating: (res.data?.upvotes > 0 || res.data?.downvotes > 0) 
             ? Math.round((res.data.upvotes / (res.data.upvotes + res.data.downvotes)) * 100) 
             : 0,
+          totalVotes: (res.data?.upvotes || 0) + (res.data?.downvotes || 0),
         });
         return api.getRandomVideos(10);
       })

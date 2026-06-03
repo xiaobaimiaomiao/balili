@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Tag } from "@/types";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import { Tag as TagIcon, Film, Search } from "lucide-react";
+import { Tag as TagIcon, Search } from "lucide-react";
 
 export default function TagPage() {
   const [tags, setTags] = useState<Tag[]>([]);

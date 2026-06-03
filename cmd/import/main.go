@@ -26,6 +26,7 @@ type jsonVideo struct {
 	SubmittedAgo    string `json:"submittedAgo"`
 	RatingPercent   *int   `json:"ratingPercent"`
 	RatingVotes     *int   `json:"ratingVotes"`
+	Contry          string `json:"contry"`
 	Categories      []string `json:"categories"`
 	Tags            []string `json:"tags"`
 	Qualities       []struct {
@@ -71,10 +72,10 @@ func main() {
 		db.Migrator().DropTable(
 			"video_categories", "video_tags",
 			&model.Screenshot{}, &model.Quality{},
-			&model.Video{}, &model.Category{}, &model.Tag{},
+			&model.Video{}, &model.Category{}, &model.Tag{}, &model.Country{},
 		)
 		db.AutoMigrate(
-			&model.Video{}, &model.Category{}, &model.Tag{},
+			&model.Video{}, &model.Category{}, &model.Tag{}, &model.Country{},
 			&model.Screenshot{}, &model.Quality{},
 		)
 	}
@@ -89,6 +90,7 @@ func main() {
 
 	categoryCache := make(map[string]*model.Category)
 	tagCache := make(map[string]*model.Tag)
+	countryCache := make(map[string]*model.Country)
 
 	// preload caches
 	var allCategories []model.Category
@@ -100,6 +102,11 @@ func main() {
 	db.Find(&allTags)
 	for i := range allTags {
 		tagCache[allTags[i].Name] = &allTags[i]
+	}
+	var allCountries []model.Country
+	db.Find(&allCountries)
+	for i := range allCountries {
+		countryCache[allCountries[i].Name] = &allCountries[i]
 	}
 
 	imported, skipped, failed := 0, 0, 0
@@ -132,9 +139,11 @@ func main() {
 				}
 
 				var releaseDate *time.Time
+				year := 0
 				if jv.ReleaseDate != "" {
 					if t, err := time.Parse("2006-01-02", jv.ReleaseDate); err == nil {
 						releaseDate = &t
+						year = t.Year()
 					}
 				}
 
@@ -144,6 +153,19 @@ func main() {
 				if jv.RatingPercent != nil && jv.RatingVotes != nil && *jv.RatingVotes > 0 {
 					upvotes = int(float64(*jv.RatingVotes) * float64(*jv.RatingPercent) / 100.0)
 					downvotes = *jv.RatingVotes - upvotes
+				}
+
+				// Determine country
+				country := "Japan"
+				if jv.Contry != "" {
+					country = jv.Contry
+				}
+				// Ensure country exists in countries table
+				if _, ok := countryCache[country]; !ok {
+					c := &model.Country{Name: country}
+					tx.Clauses(clause.OnConflict{DoNothing: true}).Create(c)
+					tx.Where("name = ?", country).First(c)
+					countryCache[country] = c
 				}
 
 				video := model.Video{
@@ -156,6 +178,8 @@ func main() {
 					SubmittedAgo:    jv.SubmittedAgo,
 					Upvotes:         upvotes,
 					Downvotes:       downvotes,
+					Year:            year,
+					Country:         country,
 				}
 
 				// categories
@@ -237,6 +261,9 @@ func main() {
 	)`)
 	db.Exec(`UPDATE tags SET video_count = (
 		SELECT COUNT(*) FROM video_tags WHERE video_tags.tag_id = tags.id
+	)`)
+	db.Exec(`UPDATE countries SET video_count = (
+		SELECT COUNT(*) FROM videos WHERE videos.country = countries.name
 	)`)
 
 	fmt.Printf("\n=== Import Complete ===\n")

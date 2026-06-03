@@ -15,14 +15,15 @@ import (
 )
 
 type AdminHandler struct {
-	videoSvc *service.VideoService
-	catSvc   *service.CategoryService
-	tagRepo  *repository.TagRepository
-	db       *gorm.DB
+	videoSvc   *service.VideoService
+	catSvc     *service.CategoryService
+	tagRepo    *repository.TagRepository
+	countrySvc *service.CountryService
+	db         *gorm.DB
 }
 
-func NewAdminHandler(videoSvc *service.VideoService, catSvc *service.CategoryService, tagRepo *repository.TagRepository, db *gorm.DB) *AdminHandler {
-	return &AdminHandler{videoSvc: videoSvc, catSvc: catSvc, tagRepo: tagRepo, db: db}
+func NewAdminHandler(videoSvc *service.VideoService, catSvc *service.CategoryService, tagRepo *repository.TagRepository, countrySvc *service.CountryService, db *gorm.DB) *AdminHandler {
+	return &AdminHandler{videoSvc: videoSvc, catSvc: catSvc, tagRepo: tagRepo, countrySvc: countrySvc, db: db}
 }
 
 // ---- Video CRUD ----
@@ -191,6 +192,9 @@ func (h *AdminHandler) updateVideoCounts() {
 	h.db.Exec(`UPDATE tags SET video_count = (
 		SELECT COUNT(*) FROM video_tags WHERE video_tags.tag_id = tags.id
 	)`)
+	h.db.Exec(`UPDATE countries SET video_count = (
+		SELECT COUNT(*) FROM videos WHERE videos.country = countries.name
+	)`)
 }
 
 // GetVideoForAdmin fetches a single video for admin editing
@@ -318,4 +322,61 @@ func (h *AdminHandler) UpdateTag(c *gin.Context) {
 	var tag model.Tag
 	h.db.First(&tag, id)
 	c.JSON(http.StatusOK, dto.APIResponse{Success: true, Data: tag})
+}
+
+// ---- Countries ----
+
+func (h *AdminHandler) ListCountries(c *gin.Context) {
+	countries, err := h.countrySvc.List()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "QUERY_ERROR", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, dto.APIResponse{Success: true, Data: countries})
+}
+
+func (h *AdminHandler) CreateCountry(c *gin.Context) {
+	var req dto.CountryCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "INVALID_PARAMS", Message: err.Error()}})
+		return
+	}
+	country, err := h.countrySvc.Create(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "CREATE_ERROR", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusCreated, dto.APIResponse{Success: true, Data: country})
+}
+
+func (h *AdminHandler) UpdateCountry(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "INVALID_ID", Message: "Invalid country ID"}})
+		return
+	}
+	var req dto.CountryUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "INVALID_PARAMS", Message: err.Error()}})
+		return
+	}
+	country, err := h.countrySvc.Update(uint(id), req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "UPDATE_ERROR", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, dto.APIResponse{Success: true, Data: country})
+}
+
+func (h *AdminHandler) DeleteCountry(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "INVALID_ID", Message: "Invalid country ID"}})
+		return
+	}
+	if err := h.countrySvc.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "DELETE_ERROR", Message: err.Error()}})
+		return
+	}
+	c.JSON(http.StatusOK, dto.APIResponse{Success: true})
 }

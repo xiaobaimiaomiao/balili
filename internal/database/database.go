@@ -31,6 +31,7 @@ func Init(dbPath string) error {
 		&model.Video{},
 		&model.Category{},
 		&model.Tag{},
+		&model.Country{},
 		&model.Screenshot{},
 		&model.Quality{},
 		&model.Like{},
@@ -42,12 +43,15 @@ func Init(dbPath string) error {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
 
-	// Update video counts for categories and tags
+	// Update video counts for categories, tags and countries
 	db.Exec(`UPDATE categories SET video_count = (
 		SELECT COUNT(*) FROM video_categories WHERE video_categories.category_id = categories.id
 	)`)
 	db.Exec(`UPDATE tags SET video_count = (
 		SELECT COUNT(*) FROM video_tags WHERE video_tags.tag_id = tags.id
+	)`)
+	db.Exec(`UPDATE countries SET video_count = (
+		SELECT COUNT(*) FROM videos WHERE videos.country = countries.name
 	)`)
 
 	DB = db

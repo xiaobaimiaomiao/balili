@@ -293,20 +293,34 @@ func (h *AuthHandler) UploadVideo(c *gin.Context) {
 
 	title := c.PostForm("title")
 	description := c.PostForm("description")
-	tags := c.PostForm("tags")
+	categoryId := c.PostForm("categoryId")
+	tagIds := c.PostForm("tagIds")
+	newTags := c.PostForm("newTags")
+	country := c.PostForm("country")
 
 	if title == "" {
 		c.JSON(http.StatusBadRequest, dto.APIResponse{Success: false, Error: &dto.APIError{Code: "INVALID_PARAMS", Message: "Title is required"}})
 		return
 	}
 
-	// Parse tag list
-	var tagNames []string
-	if tags != "" {
-		for _, t := range strings.Split(tags, ",") {
+	// Parse tag IDs
+	var selectedTagIDs []uint
+	if tagIds != "" {
+		for _, idStr := range strings.Split(tagIds, ",") {
+			idStr = strings.TrimSpace(idStr)
+			if id, err := strconv.ParseUint(idStr, 10, 64); err == nil {
+				selectedTagIDs = append(selectedTagIDs, uint(id))
+			}
+		}
+	}
+
+	// Parse new tag names
+	var newTagNames []string
+	if newTags != "" {
+		for _, t := range strings.Split(newTags, ",") {
 			t = strings.TrimSpace(t)
 			if t != "" {
-				tagNames = append(tagNames, t)
+				newTagNames = append(newTagNames, t)
 			}
 		}
 	}
@@ -320,8 +334,17 @@ func (h *AuthHandler) UploadVideo(c *gin.Context) {
 		VideoID:        videoID,
 		Title:          title,
 		Description:    description,
+		Country:        country,
 		UploadedByID:   &uid,
 		UploadedByName: uname,
+	}
+
+	// Handle category (single select)
+	if catID, err := strconv.ParseUint(categoryId, 10, 64); err == nil && catID > 0 {
+		var cat model.Category
+		if err := h.db.First(&cat, catID).Error; err == nil {
+			video.Categories = []model.Category{cat}
+		}
 	}
 
 	// Handle video file
@@ -419,8 +442,15 @@ func (h *AuthHandler) UploadVideo(c *gin.Context) {
 		}
 	}
 
-	// Handle tags
-	for _, tagName := range tagNames {
+	// Handle tags: existing tag IDs
+	if len(selectedTagIDs) > 0 {
+		var tags []model.Tag
+		h.db.Where("id IN ?", selectedTagIDs).Find(&tags)
+		video.Tags = append(video.Tags, tags...)
+	}
+
+	// Handle tags: new tag names (create if not exists)
+	for _, tagName := range newTagNames {
 		var tag model.Tag
 		result := h.db.Where("name = ?", tagName).First(&tag)
 		if result.Error != nil {
@@ -436,8 +466,12 @@ func (h *AuthHandler) UploadVideo(c *gin.Context) {
 		return
 	}
 
-	// Update tag counts
+	// Update counts
 	h.db.Exec(`UPDATE tags SET video_count = (SELECT COUNT(*) FROM video_tags WHERE video_tags.tag_id = tags.id)`)
+	h.db.Exec(`UPDATE categories SET video_count = (SELECT COUNT(*) FROM video_categories WHERE video_categories.category_id = categories.id)`)
+	if country != "" {
+		h.db.Exec(`UPDATE countries SET video_count = (SELECT COUNT(*) FROM videos WHERE country = countries.name)`)
+	}
 
 	c.JSON(http.StatusCreated, dto.APIResponse{Success: true, Data: video})
 }

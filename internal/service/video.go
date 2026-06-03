@@ -42,6 +42,8 @@ func (s *VideoService) Create(req dto.VideoCreateRequest) (*model.Video, error) 
 		Views:           req.Views,
 		SubmittedAgo:    req.SubmittedAgo,
 		UploadedByName:  req.UploadedByName,
+		Year:            req.Year,
+		Country:         req.Country,
 	}
 
 	if req.ReleaseDate != "" {
@@ -111,6 +113,12 @@ func (s *VideoService) Update(id uint, req dto.VideoUpdateRequest) (*model.Video
 	}
 	if req.UploadedByName != nil {
 		video.UploadedByName = *req.UploadedByName
+	}
+	if req.Year != nil {
+		video.Year = *req.Year
+	}
+	if req.Country != nil {
+		video.Country = *req.Country
 	}
 
 	// Update categories

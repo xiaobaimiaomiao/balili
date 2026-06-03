@@ -17,11 +17,14 @@ func (p *PaginationParams) GetOffset() int {
 
 type VideoListParams struct {
 	PaginationParams
-	Sort       string `form:"sort" binding:"omitempty,oneof=views release_date rating_percent created_at"`
+	Sort       string `form:"sort" binding:"omitempty,oneof=views likes_count release_date rating_percent created_at"`
 	Order      string `form:"order" binding:"omitempty,oneof=asc desc"`
 	Category   string `form:"category"`
 	CategoryID uint   `form:"categoryId"`
 	Tag        string `form:"tag"`
+	Tags       string `form:"tags"`
+	Country    string `form:"country"`
+	Year       int    `form:"year"`
 	Q          string `form:"q"`
 }
 
@@ -35,6 +38,8 @@ type VideoCreateRequest struct {
 	Views           int      `json:"views"`
 	SubmittedAgo    string   `json:"submittedAgo"`
 	UploadedByName  string   `json:"uploadedByName"`
+	Year            int      `json:"year"`
+	Country         string   `json:"country"`
 	CategoryIDs     []uint   `json:"categoryIds"`
 	TagIDs          []uint   `json:"tagIds"`
 	Screenshots     []string `json:"screenshots"`
@@ -54,6 +59,8 @@ type VideoUpdateRequest struct {
 	SubmittedAgo    *string  `json:"submittedAgo"`
 	VideoID         *string  `json:"videoId"`
 	UploadedByName  *string  `json:"uploadedByName"`
+	Year            *int     `json:"year"`
+	Country         *string  `json:"country"`
 	CategoryIDs     []uint   `json:"categoryIds"`
 	TagIDs          []uint   `json:"tagIds"`
 }
@@ -66,6 +73,14 @@ type CategoryCreateRequest struct {
 type CategoryUpdateRequest struct {
 	Name *string `json:"name"`
 	Slug *string `json:"slug"`
+}
+
+type CountryCreateRequest struct {
+	Name string `json:"name" binding:"required"`
+}
+
+type CountryUpdateRequest struct {
+	Name *string `json:"name"`
 }
 
 type APIResponse struct {

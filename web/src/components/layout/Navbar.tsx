@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Play, Sparkles, User, LogOut, Upload, ChevronDown } from "lucide-react";
+import { Search, Play, Sparkles, User, LogOut, Upload, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export default function Navbar() {
@@ -44,6 +44,9 @@ export default function Navbar() {
           <Link href="/" prefetch={true} className="hover:text-primary-500 transition-colors">Home</Link>
           <Link href="/category" prefetch={true} className="hover:text-primary-500 transition-colors">Categories</Link>
           <Link href="/tag" prefetch={true} className="hover:text-primary-500 transition-colors">Tags</Link>
+          <Link href="/filter" prefetch={true} className="hover:text-primary-500 transition-colors flex items-center gap-1">
+            <SlidersHorizontal className="w-3.5 h-3.5" /> 筛选
+          </Link>
         </div>
 
         <form onSubmit={handleSearch} className="flex-1 max-w-md ml-auto">

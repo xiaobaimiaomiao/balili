@@ -60,6 +60,9 @@ export const api = {
   // Tags
   getTags: (limit = 500) => fetchApi(`/tags?limit=${limit}`),
 
+  // Countries
+  getCountries: () => fetchApi("/countries"),
+
   // Stats
   getOverview: () => fetchApi("/stats/overview"),
 
@@ -137,6 +140,10 @@ export const api = {
     createTag: (data: unknown) => fetchAdminApi("/admin/tags", { method: "POST", body: JSON.stringify(data) }),
     updateTag: (id: number, data: unknown) => fetchAdminApi(`/admin/tags/${id}`, { method: "PUT", body: JSON.stringify(data) }),
     deleteTag: (id: number) => fetchAdminApi(`/admin/tags/${id}`, { method: "DELETE" }),
+    getCountries: () => fetchAdminApi("/admin/countries"),
+    createCountry: (data: unknown) => fetchAdminApi("/admin/countries", { method: "POST", body: JSON.stringify(data) }),
+    updateCountry: (id: number, data: unknown) => fetchAdminApi(`/admin/countries/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    deleteCountry: (id: number) => fetchAdminApi(`/admin/countries/${id}`, { method: "DELETE" }),
     deleteComment: (id: number) => fetchAdminApi(`/admin/comments/${id}`, { method: "DELETE" }),
     getUsers: (params?: Record<string, string | number>) => {
       const qs = params ? "?" + new URLSearchParams(

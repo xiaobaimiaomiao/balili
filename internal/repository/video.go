@@ -3,6 +3,7 @@ package repository
 import (
 	"balili/internal/dto"
 	"balili/internal/model"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -45,6 +46,23 @@ func (r *VideoRepository) List(params dto.VideoListParams) ([]model.Video, int64
 				Joins("JOIN tags ON tags.id = video_tags.tag_id").
 				Where("tags.slug = ?", params.Tag).
 				Select("videos.id"))
+	} else if params.Tags != "" {
+		tagSlugs := strings.Split(params.Tags, ",")
+		for i := range tagSlugs {
+			tagSlugs[i] = strings.TrimSpace(tagSlugs[i])
+		}
+		query = query.Where("videos.id IN (?)",
+			r.db.Model(&model.Video{}).
+				Joins("JOIN video_tags ON video_tags.video_id = videos.id").
+				Joins("JOIN tags ON tags.id = video_tags.tag_id").
+				Where("tags.slug IN ?", tagSlugs).
+				Select("videos.id"))
+	}
+	if params.Country != "" {
+		query = query.Where("videos.country = ?", params.Country)
+	}
+	if params.Year > 0 {
+		query = query.Where("videos.year = ?", params.Year)
 	}
 
 	query.Count(&total)

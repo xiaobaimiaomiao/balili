@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Film, FolderOpen, BarChart3, ArrowLeft, LogOut, Shield, Hash, Sparkles, Users } from "lucide-react";
+import { LayoutDashboard, Film, FolderOpen, BarChart3, ArrowLeft, LogOut, Shield, Hash, Sparkles, Users, Globe } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import PageTransition from "@/components/PageTransition";
 
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/categories", label: "Categories", icon: FolderOpen },
   { href: "/admin/tags", label: "Tags", icon: Hash },
+  { href: "/admin/countries", label: "Countries", icon: Globe },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
